@@ -1,0 +1,30 @@
+name: Update RSS Feed
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"  # runs every 6 hours
+  workflow_dispatch:        # lets you trigger it manually from GitHub UI
+
+jobs:
+  update-feed:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run feed generator
+        run: python generate_feed.py
+
+      - name: Commit and push feed.rss
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add feed.rss
+          git diff --cached --quiet || git commit -m "Update feed.rss [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          git push
